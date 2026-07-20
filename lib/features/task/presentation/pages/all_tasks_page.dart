@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:heroicons/heroicons.dart';
 import 'package:uakyt/core/extensions/theme_x.dart';
+import 'package:uakyt/core/utils/date_utils.dart';
 import 'package:uakyt/core/widgets/action_button.dart';
 import 'package:uakyt/core/widgets/completed_task_card.dart';
 import 'package:uakyt/features/task/domain/entity/task_entity.dart';
@@ -19,22 +20,25 @@ class AllTasksPage extends ConsumerWidget {
     final sessions = ref.watch(taskSessionsProvider);
 
     return Scaffold(
+      appBar: AppBar(
+        leading: Center(
+          child: ActionButton(
+            onTap: () {
+              if (context.canPop()) {
+                context.pop();
+              }
+            },
+            icon: HeroIcons.chevronLeft,
+          ),
+        ),
+        centerTitle: true,
+        title: Text('All Tasks', style: context.t.headlineLarge),
+      ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.only(left: 16, top: 40, right: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
           child: Column(
             children: [
-              Row(
-                children: [
-                  ActionButton(
-                    icon: HeroIcons.chevronLeft,
-                    onTap: context.pop,
-                  ),
-                  const SizedBox(width: 16),
-                  Text('Tasks', style: context.t.headlineLarge),
-                ],
-              ),
-              const SizedBox(height: 24),
               Expanded(
                 child: tasks.when(
                   data: (tasks) => sessions.when(
@@ -56,7 +60,7 @@ class AllTasksPage extends ConsumerWidget {
 
                       return ListView.separated(
                         itemCount: sections.length,
-                        separatorBuilder: (_, _) => const SizedBox(height: 24),
+                        separatorBuilder: (_, _) => const SizedBox(height: 32),
                         itemBuilder: (context, index) {
                           final section = sections[index];
 
@@ -68,14 +72,12 @@ class AllTasksPage extends ConsumerWidget {
                       );
                     },
                     error: (error, _) => _ErrorMessage(error: error),
-                    loading: () => const Center(
-                      child: CircularProgressIndicator(),
-                    ),
+                    loading: () =>
+                        const Center(child: CircularProgressIndicator()),
                   ),
                   error: (error, _) => _ErrorMessage(error: error),
-                  loading: () => const Center(
-                    child: CircularProgressIndicator(),
-                  ),
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
                 ),
               ),
             ],
@@ -130,7 +132,22 @@ class _TaskDaySection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(_formatDay(section.date), style: context.t.headlineLarge),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(formatTaskDay(section.date), style: context.t.headlineLarge),
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: Text(
+                _formatDuration(section.totalDuration),
+                style: context.t.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: context.c.onSecondary,
+                ),
+              ),
+            ),
+          ],
+        ),
         const SizedBox(height: 16),
         ListView.separated(
           shrinkWrap: true,
@@ -165,6 +182,9 @@ class _TaskDay {
 
   final DateTime date;
   final List<_CompletedTask> tasks;
+
+  Duration get totalDuration =>
+      tasks.fold(Duration.zero, (total, task) => total + task.duration);
 }
 
 class _CompletedTask {
@@ -190,29 +210,12 @@ class _ErrorMessage extends StatelessWidget {
   }
 }
 
-String _formatDay(DateTime date) {
-  final now = DateTime.now();
-  final today = DateTime(now.year, now.month, now.day);
-  final difference = today.difference(date).inDays;
+String _formatDuration(Duration duration) {
+  final hours = duration.inHours;
+  final minutes = duration.inMinutes.remainder(60);
+  final seconds = duration.inSeconds.remainder(60);
 
-  if (difference == 0) return 'Today';
-  if (difference == 1) return 'Yesterday';
+  String twoDigits(int value) => value.toString().padLeft(2, '0');
 
-  const months = [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December',
-  ];
-  final year = date.year == now.year ? '' : ' ${date.year}';
-
-  return '${date.day} ${months[date.month - 1]}$year';
+  return '${twoDigits(hours)}:${twoDigits(minutes)}:${twoDigits(seconds)}';
 }

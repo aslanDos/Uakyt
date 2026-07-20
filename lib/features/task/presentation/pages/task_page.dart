@@ -75,7 +75,7 @@ class _TaskPageState extends ConsumerState<TaskPage> {
                       context.pop();
                     }
                   },
-                  child: HeroIcon(HeroIcons.arrowLeft, size: 24),
+                  child: HeroIcon(HeroIcons.chevronLeft, size: 28),
                 ),
                 centerTitle: true,
                 title: Text(task.name, style: context.t.headlineLarge),

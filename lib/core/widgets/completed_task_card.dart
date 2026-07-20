@@ -30,7 +30,7 @@ class CompletedTaskCard extends StatelessWidget {
               context.push(AppRoutes.taskPath(taskId));
             },
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
         decoration: BoxDecoration(
           color: context.c.surfaceContainer,
           borderRadius: BorderRadius.circular(12),
@@ -54,7 +54,7 @@ class CompletedTaskCard extends StatelessWidget {
                   Text(
                     _formatDuration(duration),
                     style: context.t.bodySmall?.copyWith(
-                      color: context.c.onSurfaceVariant,
+                      color: context.c.onSecondary,
                     ),
                   ),
                 ],
